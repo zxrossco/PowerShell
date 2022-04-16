@@ -1,3 +1,16 @@
+#
+# Replace-Unicode (PowerShell 5.+)
+#
+# Takes a UTF-8 Input file (haven't tried multi-byte character sets YMMV)
+# Copies the entire file to the -OutPath folder looking for High bit set Bytes and 
+# replaceing them with -Replacement (default 42 0x2A '*')
+#
+# Author:   Ross Dawson (zxrossco)
+#           Melbourne Australia
+#           2022-04-16
+#
+# Caveat Emptor, this script will destroy your files and your Kitty will leave you for a sushi vendor.
+#
 function Replace-Unicode () {
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
@@ -23,11 +36,8 @@ function Replace-Unicode () {
     
     }
     Process {
-#        try { 
+        try { 
 
-            #[byte]$asciiMask = 0x80
-
-  
             $ChangeCount = 0
     
             $srcFile = [System.IO.File]::Open($_, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::Read)
@@ -73,17 +83,17 @@ function Replace-Unicode () {
 
             # Tidy up we're done
             @($writer, $srcFile, $reader) | ForEach-Object('Close')
-        # } 
-        # catch { 
-        #     Write-Output ($_.Exception.Message) 
-        # } 
-        # finally { 
+        } 
+        catch { 
+            Write-Output ($_.Exception.Message) 
+        } 
+        finally { 
             @($writer, $srcFile, $reader) | ForEach-Object('Dispose')
 
          
        
     
-        # }
+        }
  
     }
     end {
@@ -94,10 +104,3 @@ function Replace-Unicode () {
         }
     }
 }
-
-
-# Measure-Command { 
-# Get-ChildItem -Path '.\TestData\*.csv' | Replace-Unicode -OutPath ".\Output\" 
-
-# }
-#Get-ChildItem -Path .\TestData\US_Accidents_Dec21_updated.csv | Replace-Unicode -OutPath ".\Output\" -Replacement 0x2e | format-list 
