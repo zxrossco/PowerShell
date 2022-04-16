@@ -3,7 +3,7 @@
 #
 # Takes a UTF-8 Input file (haven't tried multi-byte character sets YMMV)
 # Copies the entire file to the -OutPath folder looking for High bit set Bytes and 
-# replaceing them with -Replacement (default 42 0x2A '*')
+# replacing them with -Replacement (default 42 0x2A '*')
 #
 # Author:   Ross Dawson (zxrossco)
 #           Melbourne Australia
