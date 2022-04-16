@@ -15,3 +15,7 @@ e.g.
 
 PS >> Get-ChildItem -Path .\DataDir\Some.csv | Replace-Unicode -OutPath ".\Output\" | format-list
 
+You can do a Folder
+
+PS >> Get-ChildItem -Path .\DataDir\**.csv | Replace-Unicode -OutPath ".\Output\" | format-list
+
