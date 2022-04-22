@@ -32,10 +32,10 @@ function Convert-Unicode () {
     param (
         [ValidateScript({
                 if (-Not ($_ | Test-Path) ) {
-                    throw "File or folder does not exist"
+                    throw "Input File or folder does not exist"
                 }
                 if (-Not ($_ | Test-Path -PathType Leaf) ) {
-                    throw "The Path argument must be a file. Folder paths are not allowed."
+                    throw "The InFilePath argument must be a file. Folder paths are not allowed."
                 }
                 if ($_ -notmatch "(\.csv|\.tab)") {
                     throw "The file specified in the path argument must be either of type csv or tab"
@@ -48,6 +48,10 @@ function Convert-Unicode () {
                     ValueFromPipelineByPropertyName, 
                     HelpMessage = "The path to the input file to Convert Unicode")]
         [System.IO.FileInfo]$InFilePath,
+        [ValidateScript({
+            if (-Not ($_ | Test-Path) ) {
+                throw "Output Folder does not exist"
+            }})]
         [Parameter(Mandatory, 
                     Position = 1, 
                     HelpMessage = "The path to the output directory the input file will be copied into")]
