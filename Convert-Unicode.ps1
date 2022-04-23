@@ -1,17 +1,32 @@
-#
-# Replace-Unicode (PowerShell 5.+)
-#
-# Takes a UTF-8 Input file (haven't tried multi-byte character sets YMMV)
-# Copies the entire file to the -OutPath folder looking for High bit set Bytes and 
-# replacing them with -Replacement (default 42 0x2A '*')
-#
-# Author:   Ross Dawson (zxrossco)
-#           Melbourne Australia
-#           2022-04-16
-#
-# Caveat Emptor, this script will destroy your files and your Kitty will leave you for a sushi vendor.
-#
-function Replace-Unicode () {
+<#
+.Synopsis
+   Takes file[] as InFilePath, copies the entire file to OutFilePath replacing bytes with the 
+   high bit 0x80 set with the Replacement byte [byte][char]'*' by default.
+.DESCRIPTION
+   Takes a UTF-8 Input file (haven't tried multi-byte character sets YMMV)
+   Copies the entire file to the -OutPath folder looking for High bit set Bytes and 
+   replacing them with -Replacement (default 42 0x2A [byte][char]'*').  
+
+   It uses .NET Binary Streams to buffer the file into memory for manipulation, search & replace. 
+   Tries to be memory efficent using a 4K buffer, PowerShell seems to be CPU limited with my approach here
+.EXAMPLE
+   Get-ChildItem -Path .\DataDir\Some.csv | Convert-Unicode -OutPath ".\Output\" 
+.EXAMPLE
+   Get-Content -Path .\ListOfFiles.txt | Convert-Unicode -OutPath ".\Output\" 
+.INPUTS
+   Inputs to this cmdlet (if any)
+.OUTPUTS
+   Output from this cmdlet (if any)
+.NOTES
+   General notes
+.COMPONENT
+   The component this cmdlet belongs to
+.ROLE
+   The role this cmdlet belongs to
+.FUNCTIONALITY
+   The functionality that best describes this cmdlet
+#>
+function Convert-Unicode () {
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param (
@@ -27,22 +42,33 @@ function Replace-Unicode () {
                 }
                 return $true
             })]
-            [Parameter(Mandatory,Position=0,ValueFromPipeLine,ValueFromPipelineByPropertyName,HelpMessage="The path to the input files to Replace Unicode")]
-        [System.IO.FileInfo]$InPath,
+        [Parameter(Mandatory, 
+                    Position = 0, 
+                    ValueFromPipeLine, 
+                    ValueFromPipelineByPropertyName, 
+                    HelpMessage = "The path to the input file to Convert Unicode")]
+        [System.IO.FileInfo]$InFilePath,
+        [Parameter(Mandatory, 
+                    Position = 1, 
+                    HelpMessage = "The path to the output directory the input file will be copied into")]
         [System.IO.DirectoryInfo]$OutPath,
-        [Byte]$Replacement = '*'
+        [Parameter(HelpMessage = "The value to replace any byte in the file with the high bit set 0x80")]
+        [ValidateNotNullOrEmpty()]
+        [ValidateRange(0,127)]
+        [Byte]$Replacement = [byte][char]'*'
     )
     begin {
     
     }
     Process {
         try { 
-
+            $outFilename = $OutPath.FullName + $InFilePath.Name
+            $start = Get-Date
             $ChangeCount = 0
     
             $srcFile = [System.IO.File]::Open($_, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::Read)
             $reader = New-Object System.IO.BinaryReader($srcFile)
-            $outFilename = $OutPath.FullName + $InPath.Name
+
             $fileStream = New-Object IO.FileStream  $outFilename, 'Create', 'Write', 'ReadWrite'
             $writer = New-Object System.IO.BinaryWriter $fileStream; 
     
@@ -98,9 +124,11 @@ function Replace-Unicode () {
     }
     end {
         return [PSCustomObject]@{
-            InputFile = [System.IO.FileInfo]$_ 
-            OutputFile = [System.IO.FileInfo]$outFilename
+            InputFile   = [System.IO.FileInfo]$_ 
+            OutputFile  = [System.IO.FileInfo]$outFilename
             ChangeCount = $ChangeCount
+            Started     = $start
+            Completed   = Get-Date
         }
     }
 }

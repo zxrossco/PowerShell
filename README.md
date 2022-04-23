@@ -7,15 +7,15 @@ It's also a place to exercise some PS skills, the feedback could be brutal ;)
 
 ## Function
 
-First Cab of the rank is Replace-Unicode:
-Replace-Unicode -InPath <<path to your csvs UTF-8>> -Output <<where you want them>> -Replacement [[byte]]
-Returns: [[PSCustomObject]] with the details
+First Cab of the rank is Convert-Unicode:
+Convert-Unicode -InPath <<path to your csvs UTF-8>> -Output <<where you want them>> -Replacement [[byte]]
+Returns: [[PSCustomObject]] with the details of where it put the output, time and number of changes
 
 e.g. 
 
-PS >> Get-ChildItem -Path .\DataDir\Some.csv | Replace-Unicode -OutPath ".\Output\" | format-list
+PS >> Get-ChildItem -Path .\DataDir\Some.csv | Convert-Unicode -OutPath ".\Output\" | format-list
 
 You can do a Folder
 
-PS >> Get-ChildItem -Path .\DataDir\\*.csv | Replace-Unicode -OutPath ".\Output\" | format-list
+PS >> Get-ChildItem -Path .\DataDir\\*.csv | Convert-Unicode -OutPath ".\Output\" | format-list
 
