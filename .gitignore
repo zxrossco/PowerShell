@@ -1,4 +1,5 @@
 Output/*.csv
+Output/Big/*
 TestData/*.csv
+TestData/*.zip
 .vscode/launch.json
-TestData/TestFiles.zip
