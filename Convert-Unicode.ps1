@@ -28,7 +28,7 @@
 #>
 function Convert-Unicode () {
     [CmdletBinding()]
-    [OutputType([PSCustomObject])]
+    [OutputType([PSCustomObject[]])]
     param (
         [ValidateScript({
                 if (-Not ($_ | Test-Path) ) {
@@ -61,12 +61,14 @@ function Convert-Unicode () {
     
     }
     Process {
+        
         try { 
             $outFilename = $OutPath.FullName + $InFilePath.Name
             $start = Get-Date
             $ChangeCount = 0
     
             $srcFile = [System.IO.File]::Open($_, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::Read)
+            $bytesToProcess = $srcFile.Length
             $reader = New-Object System.IO.BinaryReader($srcFile)
 
             $fileStream = New-Object IO.FileStream  $outFilename, 'Create', 'Write', 'ReadWrite'
@@ -120,15 +122,65 @@ function Convert-Unicode () {
        
     
         }
+        ,[PSCustomObject]@{
+            InputFile       = [System.IO.FileInfo]$_ 
+            OutputFile      = [System.IO.FileInfo]$outFilename
+            Bytes           = [Long]$bytesToProcess
+            BytesChanged    = [Long]$ChangeCount
+            Started         = [System.DateTime]$start
+            Completed       = [System.DateTime](Get-Date)
+            TotalSeconds    = (New-TimeSpan -Start $start -End (Get-Date)).TotalSeconds
+        }
  
     }
     end {
-        return [PSCustomObject]@{
-            InputFile   = [System.IO.FileInfo]$_ 
-            OutputFile  = [System.IO.FileInfo]$outFilename
-            ChangeCount = $ChangeCount
-            Started     = $start
-            Completed   = Get-Date
-        }
+    
     }
 }
+
+<#
+
+# Load the module
+. .\Convert-Unicode.ps1
+
+# Working Folder
+$rootFolder = 'D:\Ross\dev\PowerShell'
+
+# files to process, or you could Get-ChildItem on a Folder ;)
+$files = @(
+    "$rootFolder\TestData\100000 BT Records.csv",
+    "$rootFolder\TestData\1000000 BT Records.csv"
+)
+
+# Do the work and keep the results to report on later
+$results = $files | Convert-Unicode -OutPath "$rootFolder\Output\" -Replace ([Byte][Char]' ')
+
+# Simplest Answer, Total Duration
+$totalDuration = ($results | Measure-Object -Sum TotalSeconds).Sum
+
+# do a lil more math on the results from above
+$byteStats = $results | Measure-Object -Sum -Average Bytes, BytesChanged 
+$timeStats = $results | Measure-Object -Min -Max Started, Completed 
+$durationStats = $results | Measure-Object -Sum -Average TotalSeconds    
+
+$Report = "
+=============================================
+Report
+=============================================
+The Converstion began at {0}, 
+            completed at {1}., 
+            A total of {2:0.00} seconds.
+
+In that time we processed {4} files for a total of {3:0.000} MBytes." -f
+            ($timeStats | Where-Object { $_.Property -eq 'Completed' }).Minimum.ToString(),
+            ($timeStats | Where-Object { $_.Property -eq 'Completed' }).Maximum.ToString(),
+            ($durationStats | Where-Object { $_.Property -eq 'TotalSeconds' }).Sum,
+            (($byteStats | Where-Object { $_.Property -eq 'Bytes' }).Sum / 1Mb),
+            $results.Count
+
+# Show it
+$Results | Select OutputFile, Completed, Bytes, BytesChanged | Format-Table -AutoSize
+$Report
+
+
+#>
