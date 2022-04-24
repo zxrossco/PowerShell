@@ -167,7 +167,7 @@ $Report = "
 =============================================
 Report
 =============================================
-The Converstion began at {0}, 
+The Conversion began at {0}, 
             completed at {1}., 
             A total of {2:0.00} seconds.
 
